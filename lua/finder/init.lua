@@ -129,7 +129,9 @@ local function render()
 
   -- assemble lines
   local lines = {}
-  local path_line = pretty_cwd() .. "/" .. state.filter
+  local cwd_part = pretty_cwd()
+  if not cwd_part:match("/$") then cwd_part = cwd_part .. "/" end
+  local path_line = cwd_part .. state.filter
   lines[1] = path_line
   for i = 1, list_h do
     local idx = state.view_top + i
@@ -148,7 +150,7 @@ local function render()
   vim.api.nvim_buf_clear_namespace(ui.buf, ns, 0, -1)
 
   -- path bar styling: dim the cwd, normal the filter, cursor indicator at end
-  local cwd_part = pretty_cwd() .. "/"
+  -- (cwd_part already computed above, reuse it for highlight range)
   vim.api.nvim_buf_add_highlight(ui.buf, ns, "Directory", 0, 0, #cwd_part)
   if state.filter ~= "" then
     vim.api.nvim_buf_add_highlight(ui.buf, ns, "Normal", 0, #cwd_part, -1)
