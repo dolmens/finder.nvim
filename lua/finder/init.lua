@@ -193,6 +193,13 @@ local function close()
   ui.buf, ui.win, state = nil, nil, nil
 end
 
+-- Join a directory `base` with a `name`, avoiding double slashes when base
+-- already ends in '/' (e.g. when base is the filesystem root).
+local function path_join(base, name)
+  if base == "" or base:sub(-1) == "/" then return base .. name end
+  return base .. "/" .. name
+end
+
 local function ascend()
   local parent = vim.fn.fnamemodify(state.cwd, ":h")
   if parent == state.cwd then return end
@@ -202,14 +209,14 @@ local function ascend()
 end
 
 local function descend(entry)
-  state.cwd   = state.cwd .. "/" .. entry.name
+  state.cwd    = path_join(state.cwd, entry.name)
   state.filter = ""
   reload_entries()
   render()
 end
 
 local function open_file(entry)
-  local path = state.cwd .. "/" .. entry.name
+  local path = path_join(state.cwd, entry.name)
   close()
   vim.cmd("edit " .. vim.fn.fnameescape(path))
 end
