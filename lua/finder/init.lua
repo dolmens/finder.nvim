@@ -30,7 +30,10 @@ local saved_guicursor = nil
 -- Optional dependency: nvim-web-devicons. When present, prepend a glyph
 -- to each entry. When absent, render as before.
 local has_devicons, devicons = pcall(require, "nvim-web-devicons")
-local FOLDER_ICON = ""  -- nf-mdi-folder (U+F07B); requires a Nerd Font
+-- Nerd Font glyph for a closed folder: nf-fa-folder, U+F07B, UTF-8 EF 81 BB.
+-- Written as raw bytes so the literal isn't lost when the file is roundtripped
+-- through tools that misinterpret private-use-area code points.
+local FOLDER_ICON = string.char(0xef, 0x81, 0xbb)
 
 local function reset_state(cwd)
   state = {
