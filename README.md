@@ -81,10 +81,12 @@ end, { desc = "Finder" })
 
 | Key | Action |
 | --- | --- |
-| Printable characters (except `/`) | Append to the filter |
+| Printable characters | Append to the filter |
 | `<BS>` | Delete one filter char; ascend to parent when filter is empty |
 | `<C-u>` | Clear the filter |
-| `<Tab>` / `/` | Pick the **top** match: enter dir or open file |
+| `<Tab>` | Pick the **top** match: enter dir or open file |
+| `/` | Pick top match (like `<Tab>`) when filter is non-empty; jump to `/` when filter is empty |
+| `~` | Append `~` when filter is non-empty; jump to `$HOME` when filter is empty |
 | `<CR>` | Pick the **highlighted** item: enter dir or open file |
 | `<C-j>` / `<Down>` | Move highlight down |
 | `<C-k>` / `<Up>` | Move highlight up |

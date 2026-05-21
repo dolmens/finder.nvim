@@ -248,18 +248,40 @@ local function on_toggle_hidden()
   render()
 end
 
+local function jump_to(path)
+  state.cwd    = (vim.fn.fnamemodify(path, ":p")):gsub("/+$", "")
+  if state.cwd == "" then state.cwd = "/" end
+  state.filter = ""
+  reload_entries()
+  render()
+end
+
+-- "/" with empty filter -> jump to root; otherwise pick first match
+local function on_slash()
+  if state.filter == "" then jump_to("/")
+  else on_first_match() end
+end
+
+-- "~" with empty filter -> jump to home; otherwise append to filter
+local function on_tilde()
+  if state.filter == "" then jump_to(vim.fn.expand("~"))
+  else on_char("~") end
+end
+
 local function setup_keymaps(buf)
   local function map(k, fn)
     vim.keymap.set("n", k, fn, { buffer = buf, nowait = true, silent = true })
   end
 
-  -- every printable ASCII char (except '/') goes to filter
+  -- every printable ASCII char (except '/' and '~') goes to filter.
+  -- '/' and '~' are context-sensitive (see on_slash / on_tilde).
   for c = 32, 126 do
     local ch = string.char(c)
-    if ch ~= "/" then map(ch, function() on_char(ch) end) end
+    if ch ~= "/" and ch ~= "~" then map(ch, function() on_char(ch) end) end
   end
 
-  map("/",       on_first_match)
+  map("/",       on_slash)
+  map("~",       on_tilde)
   map("<Tab>",   on_first_match)
   map("<BS>",    on_bs)
   map("<CR>",    on_enter)
