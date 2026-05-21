@@ -83,6 +83,7 @@ end, { desc = "Finder" })
 | --- | --- |
 | Printable characters | Append to the filter |
 | `<BS>` | Delete one filter char; ascend to parent when filter is empty |
+| `<C-w>` / `<M-BS>` | Delete the previous "word" in the filter (any non-alphanumeric char is a separator); ascend to parent when filter is empty |
 | `<C-u>` | Clear the filter |
 | `<Tab>` | Pick the **top** match: enter dir or open file |
 | `/` | Pick top match (like `<Tab>`) when filter is non-empty; jump to `/` when filter is empty |

@@ -255,6 +255,18 @@ local function on_bs()
   end
 end
 
+-- Delete the last "word" from the filter. A word is a run of alphanumeric
+-- bytes; any non-alphanum char is treated as a separator. Trailing
+-- separators are consumed first. Ascends to parent when filter is already
+-- empty (same fallback as <BS>).
+local function on_word_bs()
+  if state.filter == "" then ascend(); return end
+  local s = state.filter:gsub("%W+$", ""):gsub("%w+$", "")
+  state.filter = s
+  apply_filter()
+  render()
+end
+
 local function on_first_match() pick(state.filtered[1]) end
 local function on_enter()       pick(state.filtered[state.cursor]) end
 local function on_down()  state.cursor = math.min(#state.filtered, state.cursor + 1); render() end
@@ -308,6 +320,8 @@ local function setup_keymaps(buf)
   map("<Down>",  on_down)
   map("<Up>",    on_up)
   map("<C-u>",   on_clear)
+  map("<C-w>",   on_word_bs)
+  map("<M-BS>",  on_word_bs)
   map("<C-h>",   on_toggle_hidden)
   map("<Esc>",   close)
   map("<C-c>",   close)
