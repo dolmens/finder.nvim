@@ -54,7 +54,16 @@ local function read_dir(path)
         if name:match(p) then skip = true; break end
       end
       if not skip then
-        out[#out + 1] = { name = name, type = t or "file" }
+        -- Resolve symlinks: fs_stat follows links, so we get the target's
+        -- type. Otherwise a symlink-to-directory would be treated as a file
+        -- and Tab/Enter would try to vim.cmd("edit") it instead of descending.
+        local is_link = (t == "link")
+        if is_link then
+          local sep = path:sub(-1) == "/" and "" or "/"
+          local stat = vim.uv.fs_stat(path .. sep .. name)
+          if stat and stat.type then t = stat.type end
+        end
+        out[#out + 1] = { name = name, type = t or "file", is_link = is_link }
       end
     end
   end
