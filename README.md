@@ -33,6 +33,11 @@ fzf-lua, not replace them.
 ## Requirements
 
 - Neovim 0.10 or newer
+- Optional: [`nvim-tree/nvim-web-devicons`](https://github.com/nvim-tree/nvim-web-devicons)
+  and a Nerd Font in your terminal — when both are present, file icons
+  are rendered in the listing automatically. Without devicons, directory
+  entries are still distinguishable from files (trailing `/`, dimmed
+  with the `Directory` highlight).
 
 ## Installation
 

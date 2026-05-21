@@ -27,6 +27,11 @@ local state, ui = nil, { buf = nil, win = nil }
 local ns = vim.api.nvim_create_namespace("finder")
 local saved_guicursor = nil
 
+-- Optional dependency: nvim-web-devicons. When present, prepend a glyph
+-- to each entry. When absent, render as before.
+local has_devicons, devicons = pcall(require, "nvim-web-devicons")
+local FOLDER_ICON = ""  -- nf-mdi-folder (U+F07B); requires a Nerd Font
+
 local function reset_state(cwd)
   state = {
     cwd      = cwd,    -- absolute, no trailing slash
@@ -114,6 +119,19 @@ local function entry_display(e)
   return e.type == "directory" and (e.name .. "/") or e.name
 end
 
+-- Returns icon string and highlight group for an entry, or nil when
+-- nvim-web-devicons isn't installed (caller should then render without
+-- icons, preserving the original look).
+local function entry_icon(e)
+  if not has_devicons then return nil end
+  if e.type == "directory" then
+    return FOLDER_ICON, "Directory"
+  end
+  local icon, hl = devicons.get_icon(
+    e.name, vim.fn.fnamemodify(e.name, ":e"), { default = true })
+  return icon or "", hl
+end
+
 local function render()
   if not (ui.buf and vim.api.nvim_buf_is_valid(ui.buf)) then return end
   if not (ui.win and vim.api.nvim_win_is_valid(ui.win)) then return end
@@ -142,10 +160,24 @@ local function render()
   if not cwd_part:match("/$") then cwd_part = cwd_part .. "/" end
   local path_line = cwd_part .. state.filter
   lines[1] = path_line
+  local icon_hls = {}  -- { [row] = { col_start, col_end, hl } } when has_devicons
   for i = 1, list_h do
     local idx = state.view_top + i
     local e = state.filtered[idx]
-    lines[#lines + 1] = e and ("  " .. entry_display(e)) or ""
+    if e then
+      if has_devicons then
+        local icon, hl = entry_icon(e)
+        -- format: "  <icon> name", with the icon at byte offset 2..2+#icon
+        lines[#lines + 1] = "  " .. icon .. " " .. entry_display(e)
+        if hl and icon ~= "" then
+          icon_hls[i] = { 2, 2 + #icon, hl }
+        end
+      else
+        lines[#lines + 1] = "  " .. entry_display(e)
+      end
+    else
+      lines[#lines + 1] = ""
+    end
   end
   lines[#lines + 1] = string.format(" %d/%d%s",
     #state.filtered, #state.entries,
@@ -179,6 +211,12 @@ local function render()
     if e and e.type == "directory" then
       vim.api.nvim_buf_add_highlight(ui.buf, ns, "Directory", i, 0, -1)
     end
+  end
+
+  -- per-entry icon colors (files only — directories already covered by the
+  -- line-wide Directory highlight above).
+  for row, h in pairs(icon_hls) do
+    vim.api.nvim_buf_add_highlight(ui.buf, ns, h[3], row, h[1], h[2])
   end
 
   -- status line subtle
